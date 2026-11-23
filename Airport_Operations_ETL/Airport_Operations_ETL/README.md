@@ -10,7 +10,7 @@ docker compose ps -a
 
 Chờ `postgres`, `mysql`, `airflow-scheduler` và `airflow-webserver` chạy ổn định. `airflow-init` có trạng thái `Exited (0)` sau khi khởi tạo Airflow. PostgreSQL lưu metadata của Airflow. MySQL lưu dữ liệu nghiệp vụ và log ETL.
 
-4. Mở [Airflow ở localhost:8080](http://localhost:8080). Tài khoản demo mặc định là **`airflow` / `airflow`**. Bật DAG **`airport_flight_departure_etl`**, bấm **Trigger DAG** và giữ `source_file` là `flights.csv`. Mở lần chạy ở tab **Grid** hoặc **Graph**.
+4. Mở [Airflow ở localhost:8080](http://localhost:8080). **`airflow` / `airflow`**. Bật DAG **`airport_flight_departure_etl`**, bấm **Trigger DAG** và giữ `source_file` là `flights.csv`. Mở lần chạy ở tab **Grid** hoặc **Graph**.
 5. Xem dữ liệu, KPI, log và lỗi từng dòng CSV bằng lệnh sau. Lệnh chạy được từ PowerShell và Bash.
 
 ```bash
