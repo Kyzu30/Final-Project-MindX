@@ -1,0 +1,109 @@
+name: airport-operations-etl
+
+x-airflow-common: &airflow-common
+  build: .
+  image: airport-etl-airflow:2.11.2
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__WEBSERVER__SECRET_KEY: airport-etl-local-demo
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+    AIRPORT_SOURCE_DIR: /opt/airflow/input
+    AIRPORT_MYSQL_HOST: mysql
+    AIRPORT_MYSQL_DATABASE: airport_etl
+    AIRPORT_MYSQL_USER: airport
+    AIRPORT_MYSQL_PASSWORD: ${AIRPORT_MYSQL_PASSWORD:-airport_demo}
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - ./data:/opt/airflow/input:ro
+    - airflow-logs:/opt/airflow/logs
+  init: true
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U airflow -d airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: airport_etl
+      MYSQL_USER: airport
+      MYSQL_PASSWORD: ${AIRPORT_MYSQL_PASSWORD:-airport_demo}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-airport_root_demo}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./scripts/sql/init:/docker-entrypoint-initdb.d:ro
+      - ./scripts/sql:/opt/airport-sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql -h127.0.0.1 -N -u\"$$MYSQL_USER\" \"$$MYSQL_DATABASE\" -e 'SELECT 1 FROM flight_departure_metrics LIMIT 1'"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  airflow-init:
+    <<: *airflow-common
+    restart: "no"
+    command: version
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: airflow
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_PASSWORD:-airflow}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "127.0.0.1:${AIRFLOW_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      mysql:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  mysql-data:
+  airflow-logs:
