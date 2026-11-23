@@ -1,7 +1,5 @@
 # Airport Operations ETL
 
-Project cuối khóa **Data Processing & Automation**. Apache Airflow đọc dữ liệu chuyến bay từ CSV, làm sạch và nạp vào MySQL. Truy vấn SQL kiểm tra dữ liệu đã nạp và thống kê trễ khởi hành.
-
 ## 1. Mở và chạy bằng VS Code
 
 1. Giải nén project. Mở **VS Code → File → Open Folder** và chọn thư mục có file `docker-compose.yaml`.
