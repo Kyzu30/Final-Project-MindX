@@ -71,8 +71,6 @@ Với cơ sở dữ liệu mới, file `flights.csv` có **16 dòng dữ liệu,
 
 File `flights_update.csv` cập nhật giờ cất cánh cho ETL003 và ETL007. Sau cập nhật, số chuyến trễ lần lượt là **3** và **2**, số phút trễ trung bình là **20** và **40**. Khi chạy lại `flights.csv`, log `check` báo `newer_target_rows = 2` và MySQL giữ hai quan sát mới hơn. Với `flights_bad_schema.csv`, task `ingest` báo thiếu cột, các bước kế tiếp không nạp dữ liệu và log pipeline có trạng thái `FAILED`.
 
-Xem [kịch bản demo và danh sách ảnh cần chụp](docs/DEMO.md). [Ảnh kiểm tra phần làm sạch](docs/evidence/offline_validation.png) ghi lại kết quả kiểm thử Python trên dữ liệu đi kèm project.
-
 ## 4. Kiểm thử
 
 Kiểm thử phần đọc và làm sạch CSV bằng Python chuẩn. Chạy `py -3` thay cho `python` nếu máy Windows dùng Python Launcher.
@@ -86,21 +84,3 @@ Sau khi Docker đã chạy và Airflow hiển thị DAG, có thể dùng lệnh 
 ```bash
 python scripts/smoke_test.py
 ```
-
-## 5. Các file khi nộp
-
-| Thành phần | Đường dẫn |
-|---|---|
-| Docker Compose và Airflow image | `docker-compose.yaml`, `Dockerfile` |
-| DAG và logic ETL | `dags/airport_operations_dag.py`, `dags/airport_etl/` |
-| Dữ liệu đầu vào | `data/` |
-| Khởi tạo MySQL và truy vấn kiểm tra | `scripts/sql/init/01_schema.sql`, `scripts/sql/verify.sql` |
-| Kiểm thử | `tests/`, `scripts/smoke_test.py` |
-| Tài liệu demo và minh chứng | `docs/DEMO.md`, `docs/evidence/` |
-
-Mở terminal trong project và chạy `git log --oneline` để xem lịch sử commit. Xem trạng thái bằng `git status --short`.
-
-### Tài liệu kỹ thuật
-
-- [Apache Airflow 2.11.2](https://airflow.apache.org/docs/apache-airflow/2.11.2/)
-- [MySQL 8.4 – INSERT ON DUPLICATE KEY UPDATE](https://dev.mysql.com/doc/refman/8.4/en/insert-on-duplicate.html)
