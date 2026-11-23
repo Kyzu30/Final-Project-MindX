@@ -2,10 +2,6 @@
 
 ## 1. Mở và chạy bằng VS Code
 
-1. Giải nén project. Mở **VS Code → File → Open Folder** và chọn thư mục có file `docker-compose.yaml`.
-2. Mở Docker Desktop hoặc khởi động Docker Engine cùng Docker Compose V2. Trong VS Code, chọn **Terminal → New Terminal**.
-3. Chạy các lệnh dưới đây từ thư mục project. Lần đầu Docker phải tải image và chuẩn bị cơ sở dữ liệu.
-
 ```bash
 docker compose version
 docker compose up -d --build
